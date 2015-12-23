@@ -79,6 +79,7 @@ class UKHASNetNode(object):
 
     def run(self):
         self.rfm69.calibrate_rssi_threshold()
+        last_calibration = time()
         self.send_our_packet()
         last_sent = time()
         while True:
@@ -93,7 +94,11 @@ class UKHASNetNode(object):
 
             if time() - last_sent > 120:
                 self.send_our_packet()
-                self.last_sent = time()
+                last_sent = time()
+
+            if time() - last_calibration > 3600 or self.rfm69.rx_restarts > 5:
+                self.rfm69.calibrate_rssi_threshold()
+                last_calibration = time()
 
 n = UKHASNetNode()
 n.run()
