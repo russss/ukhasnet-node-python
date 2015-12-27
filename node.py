@@ -2,6 +2,7 @@ from rfm69 import RFM69
 from config import config
 from time import time, sleep
 import requests
+from requests.exceptions import ConnectionError
 import logging
 
 logging.basicConfig(level=logging.DEBUG)
@@ -43,7 +44,12 @@ class UKHASNetNode(object):
         post_data = {'origin': self.node_name, 'data': packet}
         if rssi is not None:
             post_data['rssi'] = int(rssi)
-        resp = self.http.post("http://www.ukhas.net/api/upload", data=post_data)
+
+        try:
+            resp = self.http.post("http://www.ukhas.net/api/upload", data=post_data)
+        except ConnectionError:
+            self.log.exception("Error connecting to ukhas.net")
+            return False
 
         if resp.status_code != 200 or resp.json()['error'] != 0:
             self.log.error("Error submitting packet to ukhas.net: %s", resp.content)
