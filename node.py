@@ -5,7 +5,7 @@ import requests
 from requests.exceptions import ConnectionError
 import logging
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 
 class UKHASNetNode(object):
@@ -31,7 +31,6 @@ class UKHASNetNode(object):
 
     def send_our_packet(self):
         packet = self.generate_packet()
-        self.log.info("Transmitting Packet: %s", packet)
         self.submit_packet(packet)
         self.broadcast_packet(packet)
 
@@ -80,7 +79,7 @@ class UKHASNetNode(object):
         self.broadcast_packet(new_packet)
 
     def broadcast_packet(self, packet):
-        self.log.info("Sending packet: %s", packet)
+        self.log.info("Transmitting packet: %s", packet)
         self.rfm69.send_packet(packet, preamble=0.05)
 
     def run(self):
@@ -92,11 +91,15 @@ class UKHASNetNode(object):
             data = self.rfm69.wait_for_packet(timeout=60)
             if data is not None:
                 packet, rssi = data
-                packet = packet.decode('ascii') # packet is a bytearray
-                self.log.info("Received packet: %s, rssi: %s", packet, rssi)
-                self.submit_packet(packet, rssi)
-                sleep(0.2)
-                self.relay_packet(packet)
+                try:
+                    packet = packet.decode('ascii') # packet is a bytearray
+                except UnicodeDecodeError:
+                    self.log.warn("Received valid non-ASCII packet: %s", packet)
+                else:
+                    self.log.info("Received packet: %s, rssi: %s", packet, rssi)
+                    self.submit_packet(packet, rssi)
+                    sleep(0.2)
+                    self.relay_packet(packet)
 
             if time() - last_sent > 120:
                 self.send_our_packet()
