@@ -56,7 +56,7 @@ class UKHASNetNode(object):
         else:
             return True
 
-    def relay_packet(self, packet):
+    def relay_packet(self, packet, rssi):
         try:
             rpt = int(packet[0]) - 1
             bkt = packet.index('[')
@@ -76,6 +76,7 @@ class UKHASNetNode(object):
         repeaters.append(self.node_name)
 
         new_packet = bytearray(str(rpt) + packet[1:bkt] + '[' + ','.join(repeaters) + ']', 'ascii')
+        self.submit_packet(packet, rssi)
         self.broadcast_packet(new_packet)
 
     def broadcast_packet(self, packet):
@@ -97,9 +98,8 @@ class UKHASNetNode(object):
                     self.log.warn("Received valid non-ASCII packet: %s", packet)
                 else:
                     self.log.info("Received packet: %s, rssi: %s", packet, rssi)
-                    self.submit_packet(packet, rssi)
                     sleep(0.2)
-                    self.relay_packet(packet)
+                    self.relay_packet(packet, rssi)
 
             if time() - last_sent > 120:
                 self.send_our_packet()
