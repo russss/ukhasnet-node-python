@@ -1,6 +1,6 @@
 import ConfigParser
 from rfm69 import RFM69
-from config import config
+from ukhas_config import config as rfm_config
 from time import time, sleep
 import requests
 from requests.exceptions import ConnectionError
@@ -26,7 +26,7 @@ class UKHASNetNode(object):
         self.rfm69 = RFM69(reset_pin=21,
                       dio0_pin=20,
                       spi_channel=0,
-                      config=config)
+                      config=rfm_config)
 
     def get_packet_counter(self):
         current = self.counter
