@@ -9,7 +9,6 @@ logging.basicConfig(level=logging.DEBUG)
 
 rfm69 = RFM69(reset_pin=21,
               dio0_pin=20,
-              dio4_pin=26,
               spi_channel=0,
               config=config)
 

@@ -1,3 +1,4 @@
+import ConfigParser
 from rfm69 import RFM69
 from config import config
 from time import time, sleep
@@ -12,8 +13,14 @@ class UKHASNetNode(object):
 
     def __init__(self):
         self.log = logging.getLogger(__name__)
-        self.node_name = "RUSSGW"
-        self.location = "51.54,-0.09"
+        self.config = ConfigParser.ConfigParser()
+        self.config.read('/etc/ukhasnet.cfg')
+        self.node_name = self.config.get('main', 'name')
+        if self.config.get('main', 'latitude') and self.config.get('main', 'longitude'):
+            self.location = "%s,%s" % (self.config.get('main', 'latitude'),
+                                       self.config.get('main', 'longitude'))
+        else:
+            self.location = None
         self.counter = 'a'
         self.http = requests.Session()
         self.rfm69 = RFM69(reset_pin=21,
@@ -30,6 +37,8 @@ class UKHASNetNode(object):
         return current
 
     def send_our_packet(self):
+        if not self.config.getboolean('node', 'transmit'):
+            return
         packet = self.generate_packet()
         self.submit_packet(packet)
         self.broadcast_packet(packet)
@@ -37,7 +46,13 @@ class UKHASNetNode(object):
     def generate_packet(self):
         counter = self.get_packet_counter()
         temp = self.rfm69.read_temperature()
-        return "3%sL%sT%s[%s]" % (counter, self.location, temp, self.node_name)
+        packet = "3" + counter
+        if self.location:
+            packet += "L" + self.location
+        if temp:
+            packet += "T" + str(temp)
+        packet += "[%s]" % self.node_name
+        return packet
 
     def submit_packet(self, packet, rssi=None):
         post_data = {'origin': self.node_name, 'data': packet}
@@ -76,8 +91,12 @@ class UKHASNetNode(object):
         repeaters.append(self.node_name)
 
         new_packet = bytearray(str(rpt) + packet[1:bkt] + '[' + ','.join(repeaters) + ']', 'ascii')
-        self.submit_packet(packet, rssi)
-        self.broadcast_packet(new_packet)
+
+        if self.config.getboolean('node', 'gateway'):
+            self.submit_packet(packet, rssi)
+
+        if self.config.getboolean('node', 'repeat'):
+            self.broadcast_packet(new_packet)
 
     def broadcast_packet(self, packet):
         self.log.info("Transmitting packet: %s", packet)
