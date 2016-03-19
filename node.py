@@ -79,21 +79,21 @@ class UKHASNetNode(object):
             self.log.warn("Got invalid packet: %s")
             return
 
-        if rpt < 0:
-            self.log.info("Dropping packet, repeat limit is reached")
-            return
-
         repeaters = packet[bkt + 1:-1].split(',')
         if self.node_name in repeaters:
             self.log.info("Dropping packet, we already relayed")
             return
 
+        if self.config.getboolean('node', 'gateway'):
+            self.submit_packet(packet, rssi)
+
+        if rpt < 0:
+            self.log.info("Dropping packet, repeat limit is reached")
+            return
+
         repeaters.append(self.node_name)
 
         new_packet = bytearray(str(rpt) + packet[1:bkt] + '[' + ','.join(repeaters) + ']', 'ascii')
-
-        if self.config.getboolean('node', 'gateway'):
-            self.submit_packet(packet, rssi)
 
         if self.config.getboolean('node', 'repeat'):
             self.broadcast_packet(new_packet)
