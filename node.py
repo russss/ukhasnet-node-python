@@ -1,6 +1,7 @@
 import ConfigParser
 from rfm69 import RFM69
 from ukhas_config import config as rfm_config
+from w1sensor import W1TempSensor
 from time import time, sleep
 import requests
 from requests.exceptions import ConnectionError
@@ -43,9 +44,17 @@ class UKHASNetNode(object):
         self.submit_packet(packet)
         self.broadcast_packet(packet)
 
+    def get_temperature(self):
+        if self.config.get('node', 'temp_sensor'):
+            sensor = W1TempSensor(self.config.get('node', 'temp_sensor'))
+            result = sensor.get_temperature()
+        else:
+            result = self.rfm69.read_temperature()
+        return result
+
     def generate_packet(self):
         counter = self.get_packet_counter()
-        temp = self.rfm69.read_temperature()
+        temp = self.get_temperature()
         packet = "3" + counter
         if self.location:
             packet += "L" + self.location
