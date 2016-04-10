@@ -60,6 +60,8 @@ class UKHASNetNode(object):
             packet += "L" + self.location
         if temp:
             packet += "T" + str(temp)
+        if self.config.get('node', 'comment') != '':
+            packet += ':' + self.config.get('node', 'comment')
         packet += "[%s]" % self.node_name
         return packet
 
