@@ -74,11 +74,15 @@ class UKHASNetNode(object):
             self.log.exception("Error connecting to ukhas.net")
             return False
 
-        if resp.status_code != 200 or resp.json()['error'] != 0:
-            self.log.error("Error submitting packet to ukhas.net: %s", resp.content)
+        try:
+            if resp.status_code != 200 or resp.json()['error'] != 0:
+                self.log.error("Error submitting packet to ukhas.net: %s", resp.content)
+                return False
+            else:
+                return True
+        except ValueError:
+            self.log.exception("Error communicating with server")
             return False
-        else:
-            return True
 
     def relay_packet(self, packet, rssi):
         try:
