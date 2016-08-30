@@ -20,9 +20,9 @@ must run as root to access SPI and GPIO).
 
 ## To run at boot using systemd
 
-* Copy `etc/ukhasnet-node.service` to `/etc/systemd/system`. Make sure
+* Copy `etc/ukhasnet-node.service` into `/etc/systemd/system/`. Make sure
   the path to this code is correct in that file.
 * Run `systemctl daemon-reload` to reload the systemd config.
-* Run `systemctl ukhasnet-node enable` to enable, and `systemctl
-  ukhasnet-node start` to start.
-* Logs will be visible in `/var/log/messages`
+* Run `systemctl enable ukhasnet-node` to enable, and `systemctl
+  start ukhasnet-node` to start.
+* Logs will be visible in `/var/log/syslog`
