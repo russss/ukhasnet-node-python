@@ -8,10 +8,21 @@ hat](https://github.com/russss/raspberry-pi-rfm69).
 
 ## Usage
 
-* Append `dtparam=spi=on` to `/boot/config.txt` and reboot to activate the SPI interface.
+* Append `dtparam=spi=on` to `/boot/config.txt` to enable SPI
+* If you want to use 1-wire sensors, add `dtoverlay=w1-gpio` to `/boot/config.txt`
+* Reboot so these options take effect.
 * `sudo apt-get install python-dev python-pip`
 * `sudo pip install rfm69`
-* Copy `ukhasnet.cfg` to `/etc/ukhasnet.cfg` and edit to configure
+* Copy `etc/ukhasnet.example.cfg` to `/etc/ukhasnet.cfg` and edit to configure
 
 You should then be able to run the node with `sudo python ./node.py` (it
 must run as root to access SPI and GPIO).
+
+## To run at boot using systemd
+
+* Copy `etc/ukhasnet-node.service` to `/etc/systemd/system`. Make sure
+  the path to this code is correct in that file.
+* Run `systemctl daemon-reload` to reload the systemd config.
+* Run `systemctl ukhasnet-node enable` to enable, and `systemctl
+  ukhasnet-node start` to start.
+* Logs will be visible in `/var/log/messages`

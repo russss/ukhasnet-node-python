@@ -1,0 +1,11 @@
+[Unit]
+Description=UKHASNet Node
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python /opt/ukhasnet-node-python/node.py
+KillMode=process
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
