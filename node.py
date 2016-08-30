@@ -25,9 +25,9 @@ class UKHASNetNode(object):
         self.counter = 'a'
         self.http = requests.Session()
         self.rfm69 = RFM69(reset_pin=21,
-                      dio0_pin=20,
-                      spi_channel=0,
-                      config=rfm_config)
+                           dio0_pin=20,
+                           spi_channel=0,
+                           config=rfm_config)
 
     def get_packet_counter(self):
         current = self.counter
@@ -127,7 +127,7 @@ class UKHASNetNode(object):
             if data is not None:
                 packet, rssi = data
                 try:
-                    packet = packet.decode('ascii') # packet is a bytearray
+                    packet = packet.decode('ascii')  # packet is a bytearray
                 except UnicodeDecodeError:
                     self.log.warn("Received valid non-ASCII packet: %s", packet)
                 else:
