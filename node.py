@@ -78,7 +78,8 @@ class UKHASNetNode(object):
 
         try:
             if resp.status_code != 200 or resp.json()['error'] != 0:
-                self.log.error("Error submitting packet to ukhas.net: %s", resp.content)
+                self.log.error("Error submitting packet to ukhas.net: %s. Data was: %s",
+                               resp.content, post_data)
                 return False
             else:
                 return True
