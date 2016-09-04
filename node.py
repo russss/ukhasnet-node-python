@@ -23,6 +23,7 @@ class UKHASNetNode(object):
         else:
             self.location = None
         self.counter = 'a'
+        self.last_rssi = None
         self.http = requests.Session()
         self.rfm69 = RFM69(reset_pin=21,
                            dio0_pin=20,
@@ -60,6 +61,9 @@ class UKHASNetNode(object):
             packet += "L" + self.location
         if temp:
             packet += "T" + str(temp)
+        if self.last_rssi:
+            threshold = self.rfm69.get_rssi_threshold()
+            packet += "R%.1f,%.1f" % (self.last_rssi, threshold)
         if self.config.get('node', 'comment') != '':
             packet += ':' + self.config.get('node', 'comment')
         packet += "[%s]" % self.node_name
@@ -136,6 +140,7 @@ class UKHASNetNode(object):
                     self.log.warn("Received valid non-ASCII packet: %s", packet)
                 else:
                     self.log.info("Received packet: %s, rssi: %s", packet, rssi)
+                    self.last_rssi = rssi
                     sleep(0.2)
                     self.relay_packet(packet, rssi)
 
