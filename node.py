@@ -119,8 +119,11 @@ class UKHASNetNode(object):
         self.rfm69.send_packet(packet, preamble=0.05)
 
     def run(self):
-        self.rfm69.calibrate_rssi_threshold()
-        last_calibration = time()
+        if self.config.getfloat('node', 'rssi_threshold') is not None:
+            self.rfm69.set_rssi_threshold(self.config.getfloat('node', 'rssi_threshold'))
+        else:
+            self.rfm69.calibrate_rssi_threshold()
+            last_calibration = time()
         self.send_our_packet()
         last_sent = time()
         while True:
@@ -140,9 +143,13 @@ class UKHASNetNode(object):
                 self.send_our_packet()
                 last_sent = time()
 
-            if time() - last_calibration > 3600 or self.rfm69.rx_restarts > 5:
-                self.rfm69.calibrate_rssi_threshold()
-                last_calibration = time()
+            if self.config.getfloat('node', 'rssi_threshold') is None:
+                if time() - last_calibration > 3600 or self.rfm69.rx_restarts > 5:
+                    self.rfm69.calibrate_rssi_threshold()
+                    last_calibration = time()
+            elif self.rfm69.rx_restarts > 5:
+                self.log.warn("Excessive Rx restarts (%s). Consider raising the RSSI threshold",
+                              self.rfm69.rx_restarts)
 
 n = UKHASNetNode()
 n.run()
